@@ -1,28 +1,28 @@
 class Solution {
-     
-     func numDecodings(_ s: String) -> Int {
-        let message = Array(s).compactMap { Int(String($0)) }
-        let n = message.count
-        
-        guard n > 0, message[0] != 0 else { return 0 }
-        guard n > 1 else { return 1 }
-        
-        var pre1 = 1
-        var pre2 = 1
-        var cur = 0
-        
-        for i in 1..<n {
-            cur = 0
-            if message[i] >= 1, message[i] <= 9 { cur += pre1 }
-            
-            let tmp = message[i-1] * 10 + message[i]
-            if tmp >= 10, tmp <= 26 { cur += pre2 }
-            
-            pre2 = pre1
-            pre1 = cur
-        }
-        
-        return cur
+ public:
+  int numDecodings(string s) {
+    const int n = s.length();
+    // dp[i] := # of ways to decode s[i..n)
+    vector<int> dp(n + 1);
+    dp[n] = 1;  // ""
+    dp[n - 1] = isValid(s[n - 1]);
+
+    for (int i = n - 2; i >= 0; --i) {
+      if (isValid(s[i]))
+        dp[i] += dp[i + 1];
+      if (isValid(s[i], s[i + 1]))
+        dp[i] += dp[i + 2];
     }
 
-}
+    return dp[0];
+  }
+
+ private:
+  bool isValid(char c) {
+    return c != '0';
+  }
+
+  bool isValid(char c1, char c2) {
+    return c1 == '1' || c1 == '2' && c2 < '7';
+  }
+};
