@@ -1,24 +1,34 @@
-#define ll long long
-int longestSquareStreak(vector<int>& nums) {
-    unordered_map<ll, int> m;
-    // build map
-    for(auto i : nums)
-        ++m[i];
-    sort(nums.begin(), nums.end());
-    ll ans = -1;
-    for(auto i : nums) {
-        // break earlier
-        if(!m.size())
-            break;
-        ll len = 0, now = i;
-        while(m.count(now)) {
-            m.erase(now);
-            ++len;
-            now *= now;
+class Solution 
+{
+public:
+    int longestSquareStreak(vector<int>& nums) 
+    {  
+        sort(nums.begin(), nums.end(), greater<int>());
+        
+        unordered_map<int, int> mp;
+        for(auto &it:nums)
+        {
+            mp[it]++;
         }
-        // valid ans
-        if(len > 1)
-            ans = max(ans, len);
+        
+        int count;
+        int maxi=1;
+        
+        for(int i=0; i<nums.size()-1; i++)
+        {
+            count=1;
+            int x=nums[i];
+            while(mp[sqrt(x)]>0)
+            {
+                int p=sqrt(x);
+                //Since sqrt(x) can be a decimal number so we need to check  perfect square condition
+                if(p*p==x) count++;
+                else break;
+                mp[sqrt(x)]--;
+                x = sqrt(x);
+            }
+            maxi = max(maxi, count);
+        }
+        return maxi==1?-1:maxi;
     }
-    return ans;
-}
+};
