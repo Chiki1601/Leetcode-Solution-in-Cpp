@@ -1,30 +1,49 @@
 class Solution {
 public:
     bool isPossible(int n, vector<vector<int>>& edges) {
-        vector<unordered_set<int>> adj(n + 1);
-        for(vector<int>& e : edges){
-            adj[e[0]].insert(e[1]);
-            adj[e[1]].insert(e[0]);
+        vector<unordered_set<int>> graph(n);
+        vector<int> deg(n);
+        for(auto edge:edges) {
+            graph[edge[0] - 1].insert(edge[1] - 1);
+            graph[edge[1] - 1].insert(edge[0] - 1);
+            deg[edge[0]-1]++;
+            deg[edge[1]-1]++;
         }
-        vector<int> odds;
-        for(int i = 0; i <= n ; i++){
-            if(adj[i].size() & 1){
-                odds.push_back(i);
-            } 
+        vector<int> nodes;
+        for(int i = 0; i < n; i += 1) {
+            if(deg[i]&1) nodes.push_back(i);
         }
-        if(odds.size() == 0) return true;
-        if(odds.size() > 4 or odds.size() % 2 != 0) return false;
-        if(odds.size() == 4){
-            int a = odds[0] , b = odds[1] , c = odds[2] , d = odds[3];
-            return (adj[a].find(d) == adj[a].end() and f2= adj[b].find(c) == adj[b].end()) or  (adj[a].find(b) == adj[a].end() and f4= adj[c].find(d) == adj[c].end()) or (f3 = adj[a].find(c) == adj[a].end() and f4= adj[b].find(d) == adj[b].end())
-        }else{
-            int a = odds[0] , b = odds[1]; 
-            bool flag = adj[a].find(b) == adj[a].end();
-            if(flag) return true;
-            for(int i = 1; i <= n ;i++){
-                if(a != i and b != i and adj[a].find(i) == adj[a].end() and adj[b].find(i) == adj[b].end()) return true;
+        if(nodes.size() == 0) return true;
+        if(nodes.size() % 2 == 1 || nodes.size() > 4) return false;
+        if(nodes.size() == 2) {
+            if(!graph[nodes[0]].count(nodes[1])) return true;
+            unordered_set<int> st;
+            for(auto it: graph[nodes[0]]) st.insert(it);
+            for(auto it:graph[nodes[1]]) st.insert(it);
+            if(st.size() == n) return false;
+            return true;
+        }
+        bool flag = false;
+        int maxcnt = 0;
+        vector<int> u2;
+        for(int x: nodes) {
+            int cnt = 0;
+            vector<int> e;
+            for(int y:nodes){
+                if(graph[x].count(y)) {
+                    cnt++;
+                    e.push_back(y);
+                    flag = true;
+                }
             }
-            return false;
+            if(cnt > maxcnt) {
+                u2 = e;
+                maxcnt = cnt;
+            }
         }
+        if(!flag || maxcnt == 1) return true;
+        if(maxcnt == 3) return false;
+        if(graph[u2[0]].count(u2[1])) return false;
+        return true;
     }
 };
