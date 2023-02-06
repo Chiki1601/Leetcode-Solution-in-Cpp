@@ -1,3 +1,5 @@
+class Solution {
+public:
     int maximizeWin(vector<int>& A, int k) {
         int res = 0, n = A.size(), j = 0;
         vector<int> dp(n + 1, 0);
@@ -9,3 +11,4 @@
         }
         return res;
     }
+};
