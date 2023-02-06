@@ -1,20 +1,18 @@
 class Solution {
 public:
-        vector<int> a;
-    while(i<nums.size()){ 
-        int j= i+1;
-        while(j<nums.size()){
-            int sum=nums[i]+nums[j];
-            if(sum==target) {
-                a.push_back(i);
-                a.push_back(j);
-                return a;
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> hash;
+        vector<int> res;
+        for (int i = 0; i < nums.size(); i++) {
+            int numberToFind = target - nums[i];
+            auto it = hash.find(numberToFind);
+            if (it != hash.end()) {
+                res.push_back(it->second); // to int
+                res.push_back(i);
+                return res;
             }
-            j++;
+            hash[nums[i]] = i;
         }
-        i++;
-        }
-    a.push_back(-1);
-    return a;
-}
+        return res;
+    }
 };
