@@ -1,21 +1,20 @@
-int minimumIndex(vector<int>& nums) {
-    //find the majority element 
-    int majority = nums[0], count = 0;
-    for(auto n: nums){
-        if(n == majority) count++;
-        else count--;
-        if(count == 0) { majority = n; count = 1; }
+class Solution {
+public:
+    int minimumIndex(vector<int>& nums) {
+        unordered_map<int,int> m1,m2;
+        int n=nums.size();
+        
+        for(int i=0;i<n;i++)
+            m2[nums[i]]++;
+        
+        for(int i=0;i<n;i++) {
+            int x = ++m1[nums[i]];
+            int y = --m2[nums[i]];
+            
+            if(x*2>(i+1) && y*2>(n-i-1)) //i+1 (total element in left), n-i-1 (total elements in right)
+            return i;
+        }
+        
+        return -1;
     }
-    
-    //count majority elements occurance
-    int majCout = 0;
-    for(auto n: nums) if(n == majority)  majCout++;
-    
-    //check if split is possible or not
-    count = 0;
-    for(int i = 0; i < nums.size(); ++i){
-        if(nums[i] == majority) count++;
-        if(count*2 > (i+1)  && (majCout - count)*2 > (nums.size() - i - 1)) return i;
-    }
-    return -1;
-}
+};
