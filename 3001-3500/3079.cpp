@@ -1,27 +1,20 @@
 class Solution {
 public:
     int sumOfEncryptedInt(vector<int>& nums) {
-        int ans = 0; // Initialize ans to avoid undefined behavior
-        
-        for(int j = 0; j < nums.size(); j++){
-            int it = nums[j];
-            string s = to_string(it);
-            int len = s.size();
-            int greater = 0;
-            for(int i = 0; i < len; i++){
-                int ele = s[i] - '0';
-                greater = max(greater , ele);
+        int ans = 0, x = 0, k = 0, y = 0;
+        for(auto i: nums){
+            x = 0, k = 0;
+            while(i){
+                x = max(x,(i%10));
+                k++;
+                i /= 10;
             }
-            cout<<greater<<" ";
-            string new_str = "";
-            for(int i = 0; i < len; i++){
-                new_str += to_string(greater);
+            y = 0;
+            while(k--){
+                y = (y*10)+x;
+                
             }
-            nums[j] = stoi(new_str);
-        }
-        
-        for(int i = 0; i < nums.size(); i++){
-            ans += nums[i];
+            ans += (y);
         }
         return ans;
     }
