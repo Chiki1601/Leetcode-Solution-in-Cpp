@@ -1,35 +1,33 @@
 class Solution {
 public:
+
     using ll = long long;
     
-    ll atMostK(vector<int>& A, int K) {
-        ll i = 0, res = 0;
-        unordered_map<int, ll> count;
-        for (int j = 0; j < A.size(); ++j) {
-            if (!count[A[j]]++) K--;
-            while (K < 0) {
-                if (!--count[A[i]]) K++;
-                i++;
-            }
-            res += j - i + 1;
+    ll SubarraysWithAtmostKDistinctElements(vector<int>& A, int K) {
+        ll subarrays = 0 , Freq[100005]{};
+        for(int L = 0 , R = 0 ; R < A.size() ; R++){
+            K -= Freq[A[R]]++ == 0;
+            while(K < 0) K += --Freq[A[L++]] == 0;
+            subarrays += R - L + 1;
         }
-        return res;
+        return subarrays;
     }
     
-    ll uniqueCount(vector<int> &nums){
-        set<int> set;
-        for(int &num : nums) set.insert(num);
-        return set.size();
+    int uniqueCount(vector<int> &nums){
+        return set<int>(nums.begin(),nums.end()).size();
     }
     
     int medianOfUniquenessArray(vector<int>& nums){
-        ll n = nums.size();
-        ll low = 1 , high = uniqueCount(nums) , median = 1;
-        ll total = (n * (n+1))/2;
+
+        ll total = (nums.size() * 1LL * (nums.size() + 1))/2;
+
+        int low = 1 , high = uniqueCount(nums);
+        int median = 1;
+
         while(low <= high){
             int mid = (low + high)/2;
-            ll count = atMostK(nums , mid);
-            if(count >= (total+1)/2){
+            ll Count = SubarraysWithAtmostKDistinctElements(nums , mid);
+            if(Count >= (1 + total) / 2){
                 median = mid;
                 high = mid - 1;
             }
@@ -37,11 +35,7 @@ public:
                 low = mid + 1;
             }
         }
+
         return median;
     }
-};
-
-
-
-    
-    
+}; 
