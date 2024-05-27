@@ -1,115 +1,65 @@
-constexpr int MaxX = 50001;
+class Solution {
 
-class SegTree;
+    void breakSpaces(int pos){
+        // break spaces
+        auto it = obstacles.upper_bound(pos);
+        int pos_next = *it;
+        int pos_prev = *prev(it);
+        // remove original space
+        int orig_size = pos_next - pos_prev;
+        spaces[orig_size].erase(pos_prev);
+        if(spaces[orig_size].size() == 0){ spaces.erase(orig_size); }
+        // add new space
+        spaces[pos - pos_prev].insert(pos_prev);
+        spaces[pos_next - pos].insert(pos);
+    }
+    
+    bool findSpace(int maxi_dist, int block_size){
+        auto it = spaces.lower_bound(block_size);
+        while(it != spaces.end()){
+            //for(int start_pos: it->second){
+            //    if(start_pos+block_size <= maxi_dist){
+            //        return true;
+            //    }
+            // }
+            // The start positions were sorted in order.
+            // Thus we only need to check the first one.
+            set<int> & start_positions = it->second;
+            int first_pos = *start_positions.begin();
+            if(first_pos + block_size <= maxi_dist){
+                return true;
+            }
+            advance(it, 1);
+        }
+        return false;
+    }
 
-class Solution
-{
+    vector<bool> ans;
+    set<int> obstacles;        // To keep obstacle coordinate in order
+    map<int, set<int>> spaces; // keep group empty spaces in order. spaces: space_size -> start index
+        
 public:
-	vector<bool> getResults(vector<vector<int>>& queries)
-	{
-		SegTree seg(MaxX);
-		set<int> obs;
-        // Consider the max x and 0 as existing obstacles
-		obs.insert(0);
-		obs.insert(MaxX);
+    vector<bool> getResults(const vector<vector<int>>& queries) {
+        int const nquery = queries.size();
+        ans.reserve(nquery);
+        int maxi_dist = min(5*10e4, 3.0*nquery);
+        obstacles.insert(0);         // dummy obstacle
+        obstacles.insert(maxi_dist); // dummy obstacle
+        spaces[maxi_dist].insert(0); // initialize space
 
-		vector<bool> ans;
-		for (auto& q : queries)
-		{
-			int x = q[1];
-			if (q[0] == 1)
-			{
-                // x will never already exist in obs, so the returned itr will
-                // always be r of the existing gap and l will be the prevous one
-				auto itr = obs.upper_bound(x);
-				int r = *itr;
-				int l = *(--itr);
-				obs.insert(x);
-				seg.UpdateValue(x, x - l);
-				seg.UpdateValue(r, r - x);
-			}
-			else
-			{
-				int sz = q[2];
-                // First check the segment tree for the max gap before x
-				bool isValid = seg.GetMax(x) >= sz;
-                // But if we don't find one,
-                // then we should also check the gap which x falls into
-                // as there is the space from [l,x] which is not accounted for
-                // in the segment tree if no obstable exists at x
-				if (!isValid)
-				{
-					auto itr = obs.lower_bound(x);
-					if (*itr != x)
-					{
-                        int l = *(--itr);
-						isValid = (x - l) >= sz;
-					}
-				}
-				ans.push_back(isValid);
-			}
-		}
-
-		return ans;
-	}
-};
-
-class SegTree
-{
-public:
-	SegTree(int _n)
-	{
-		n = _n;
-		tree.resize(n * 4, 0);
-	}
-
-	int GetMax(int x) const
-	{
-		return GetRangeValueInternal(0, x, 1, 0, n - 1);
-	}
-
-	void UpdateValue(int index, int newValue)
-	{
-		UpdateValueInternal(index, newValue, 1, 0, n - 1);
-	}
-
-private:
-	int GetRangeValueInternal(int left, int right, int nodeIndex, int nodeRangeLeftIndex, int nodeRangeRightIndex) const
-	{
-		if (left > right)
-			return 0;
-
-		if (left == nodeRangeLeftIndex && right == nodeRangeRightIndex)
-			return tree[nodeIndex];
-
-		int rangeMid = (nodeRangeLeftIndex + nodeRangeRightIndex) / 2;
-		int leftV = GetRangeValueInternal(left, min(right, rangeMid), nodeIndex * 2, nodeRangeLeftIndex, rangeMid);
-		int rightV = GetRangeValueInternal(max(left, rangeMid + 1), right, nodeIndex * 2 + 1, rangeMid + 1, nodeRangeRightIndex);
-		return max(leftV, rightV);
-	}
-
-	void UpdateValueInternal(int index, int newValue, int nodeIndex, int nodeRangeLeftIndex, int nodeRangeRightIndex)
-	{
-		if (nodeRangeLeftIndex == nodeRangeRightIndex)
-		{
-			tree[nodeIndex] = newValue;
-			return;
-		}
-
-		int mid = (nodeRangeLeftIndex + nodeRangeRightIndex) / 2;
-		int leftChild = nodeIndex * 2;
-		int rightChild = leftChild + 1;
-		if (index <= mid)
-		{
-			UpdateValueInternal(index, newValue, leftChild, nodeRangeLeftIndex, mid);
-		}
-		else
-		{
-			UpdateValueInternal(index, newValue, rightChild, mid + 1, nodeRangeRightIndex);
-		}
-		tree[nodeIndex] = max(tree[leftChild], tree[rightChild]);
-	}
-
-	int n;
-	vector<int> tree;
+        for(auto const & query: queries){
+            int op = query[0];
+            // op1: set obstacle
+            if(op == 1){
+                breakSpaces(query[1]);
+                obstacles.insert(query[1]);
+            }
+            // op2: put blocks
+            else{
+                ans.push_back(findSpace(query[1], query[2]));
+            }
+        }        
+        
+        return ans;
+    }
 };
