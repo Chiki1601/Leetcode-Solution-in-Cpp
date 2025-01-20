@@ -1,23 +1,58 @@
-pair<int, int> res{0, 1};
-int depth[50001] = {};
-void dfs(int i, int p, vector<vector<array<int, 2>>>& al, vector<int>& nums, int left, int cur_depth, vector<int> &ps) {
-    int prev_depth = exchange(depth[nums[i]], cur_depth);
-    left = max(left, prev_depth);
-    res = min(res, {-(ps.back() - ps[left]), cur_depth - left});
-    for (auto &[j, l] : al[i])
-        if (j != p) {
-            ps.push_back(ps.back() + l);
-            dfs(j, i, al, nums, left, cur_depth + 1, ps);
-            ps.pop_back();
+class Solution {
+public:
+    int maxL = 0;
+    int nodes = 1;
+
+    void help(vector<pair<int, int>> &a, vector<int> &b){
+        int l = 0, n = b.size();
+        vector<int> s(50001, 0);
+        s[b[a[0].first]] = 1;
+        for(int r = 1; r<a.size(); r++){
+            pair<int,int > t = a[r];
+            int i = t.first;
+            int v = b[i];
+            while(s[v] > 0){
+                s[(b[a[l++].first])]--;
+            }
+            s[v] = 1;
+            if(a[r].second - a[l].second > maxL){
+                maxL = a[r].second - a[l].second;
+                nodes = r - l + 1;
+            }
+            else if(a[r].second - a[l].second == maxL){
+                nodes = min(nodes, r- l + 1);
+            }
         }
-    depth[nums[i]] = prev_depth;
-}
-vector<int> longestSpecialPath(vector<vector<int>>& edges, vector<int>& nums) {
-    vector<vector<array<int, 2>>> al(nums.size());
-    for (const auto &e : edges) {
-        al[e[0]].push_back({e[1], e[2]});
-        al[e[1]].push_back({e[0], e[2]});
     }
-    dfs(0, -1, al, nums, 0, 1, vector<int>() = {0});
-    return {-res.first, res.second};
-}
+
+    void dfs(vector<vector<pair<int, int>>>& g,  vector<int> &b, vector<pair<int, int>> &a, int par){
+        pair<int, int> t = a.back();
+        int u = t.first, l = t.second;
+        bool isLeaf = true;
+        for(int i=0; i<g[u].size(); i++){
+            if(g[u][i].first != par){
+                isLeaf = false;
+                a.push_back({g[u][i].first, g[u][i].second + l});
+                dfs(g, b, a, u);
+                a.pop_back();
+            }
+        }
+
+        if(isLeaf){
+            help(a, b);
+        }
+    }
+
+    vector<int> longestSpecialPath(vector<vector<int>>& e, vector<int>& a) {
+        int n = a.size();
+        vector<vector<pair<int, int>>> g(n);
+        for(vector<int> &t: e){
+            g[t[0]].push_back({t[1], t[2]});
+            g[t[1]].push_back({t[0], t[2]});
+        }
+        vector<pair<int, int>> temp;
+        temp.push_back({0, 0});
+        dfs(g, a, temp, -1);
+        return {maxL, nodes};
+    }
+};
