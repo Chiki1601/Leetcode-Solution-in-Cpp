@@ -1,58 +1,49 @@
 class Solution {
 public:
-    int maxL = 0;
-    int nodes = 1;
-
-    void help(vector<pair<int, int>> &a, vector<int> &b){
-        int l = 0, n = b.size();
-        vector<int> s(50001, 0);
-        s[b[a[0].first]] = 1;
-        for(int r = 1; r<a.size(); r++){
-            pair<int,int > t = a[r];
-            int i = t.first;
-            int v = b[i];
-            while(s[v] > 0){
-                s[(b[a[l++].first])]--;
-            }
-            s[v] = 1;
-            if(a[r].second - a[l].second > maxL){
-                maxL = a[r].second - a[l].second;
-                nodes = r - l + 1;
-            }
-            else if(a[r].second - a[l].second == maxL){
-                nodes = min(nodes, r- l + 1);
-            }
+    vector<vector<pair<int,int>>> g;
+    vector<int> color;
+    int mx = 0, mn = INT_MAX;
+    vector<int> longestSpecialPath(vector<vector<int>>& edges, vector<int>& nums) {
+        int n = nums.size();
+        color = nums;
+        g.resize(n);
+        for (int i = 0; i < n - 1; i++) {
+            g[edges[i][0]].push_back({edges[i][1], edges[i][2]});
+            g[edges[i][1]].push_back({edges[i][0], edges[i][2]});
         }
+        unordered_map<int, int> mp;
+        
+        vector<vector<int>> st;
+        st.push_back({0, 0});
+        dfs(0, mp, -1, 0, st, 0);
+        return {mx, mn};
     }
-
-    void dfs(vector<vector<pair<int, int>>>& g,  vector<int> &b, vector<pair<int, int>> &a, int par){
-        pair<int, int> t = a.back();
-        int u = t.first, l = t.second;
-        bool isLeaf = true;
-        for(int i=0; i<g[u].size(); i++){
-            if(g[u][i].first != par){
-                isLeaf = false;
-                a.push_back({g[u][i].first, g[u][i].second + l});
-                dfs(g, b, a, u);
-                a.pop_back();
-            }
+    void dfs(int node, unordered_map<int, int>& pres, int parent, int depth, vector<vector<int>>& st, int index) {
+        int dist = st.back()[1] - st[index][1];
+        if (dist > mx) {
+            mx = dist;
+            mn = st.size() - index;
         }
-
-        if(isLeaf){
-            help(a, b);
+        if (dist == mx && st.size() - index < mn) {
+            mn = st.size() - index;
         }
-    }
-
-    vector<int> longestSpecialPath(vector<vector<int>>& e, vector<int>& a) {
-        int n = a.size();
-        vector<vector<pair<int, int>>> g(n);
-        for(vector<int> &t: e){
-            g[t[0]].push_back({t[1], t[2]});
-            g[t[1]].push_back({t[0], t[2]});
+        
+        int prev_depth = pres.find(color[node]) != pres.end() ? pres[color[node]] : -1;
+        pres[color[node]] = depth;
+        for (auto pr : g[node]) {
+            if (pr.first == parent) 
+                continue;     
+            st.push_back({pr.first, st.back()[1] + pr.second});
+           
+            int newind = pres.find(color[pr.first]) == pres.end() ? -1 : pres[color[pr.first]];
+            dfs(pr.first, pres, node, depth + 1 , st, max(index, newind + 1));
+            st.pop_back();         
         }
-        vector<pair<int, int>> temp;
-        temp.push_back({0, 0});
-        dfs(g, a, temp, -1);
-        return {maxL, nodes};
+        if (prev_depth < 0) {
+            pres.erase(color[node]);
+        } else {
+            pres[color[node]] = prev_depth;
+        }
+        return;
     }
 };
