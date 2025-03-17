@@ -1,112 +1,70 @@
-#define ll long long 
-
-string gen(ll pos, ll stat, ll start, ll pr, ll sum)
-{
-    sting ans = to_string(pos) + '.' + to_string(stat) + '.' + to_string(start) + '.' + to_string(pr) + '.' + to_string(sum); 
-    
-    return ans;
-}
-
-
-ll find(ll pos, ll stat, ll start, string &curr, ll pr, ll sum, unordered_map<string, ll> &dp)
-{
-    if(pos == curr.size())
-    {        
-        if(pr == 0)
-            return 1;
-        
-        if(sum == 0)
-            return 0;
-        
-        if(pr%sum == 0)
-            return 1;
-        return 0;
-    }        
-    
-    string s = gen(pos, stat, start, pr, sum); // generating string memo
-    
-    if(dp.find(s) != dp.end())
-        return dp[s];
-    
-    ll dig = curr[pos] - '0';
-    ll ans = 0;
-    
-    if(start == 0) // when the number constructed is all zeroes
-    {
-        if(stat == 0)
-        {            
-            for(ll i=0; i<dig; ++i)
-            {      
-                if(i == 0)
-                {
-                    ans += find(pos+1, 1, 0, curr, 1, sum+i, dp);
-                    continue;
-                }
-                
-                ans += find(pos+1, 1, 1, curr, pr*i, sum+i, dp);
-            }
-            
-            
-            if(dig == 0)
-                ans += find(pos+1, 0, 0, curr, 1, sum+dig, dp);
-            else
-                ans += find(pos+1, 0, 1, curr, pr*dig, sum+dig, dp);
-        }
-
-        else if(stat == 1)
-        {
-            for(ll i=0; i<10; ++i)
-            {
-                if(i == 0)
-                {
-                    ans += find(pos+1, 1, 0, curr, 1, sum+i, dp);
-                    continue;
-                }
-                
-                ans += find(pos+1, 1, 1, curr, pr*i, sum+i, dp);
-            }
-        }
-
-        return dp[s] = ans;
-    }
-    
-
-    // case when the number constructed is not all zeroes
-
-    if(stat == 0)
-    {
-        for(ll i=0; i<dig; ++i)
-            ans += find(pos+1, 1, 1, curr, pr*i, sum+i, dp);
-
-        ans += find(pos+1, 0, 1, curr, pr*dig, sum+dig, dp);
-    }
-
-    else if(stat == 1)
-    {
-        for(ll i=0; i<10; ++i)
-            ans += find(pos+1, 1, 1, curr, pr*i, sum+i, dp);
-    }
-
-    return dp[s] = ans;
-}
-
-
 class Solution {
 public:
     int beautifulNumbers(int l, int r) {
+        long long countR = count(r);
+        long long countL = count(l - 1);
+        return (int)(countR - countL);
+    }
+    
+private:
+    long long count(int x) {
+        if (x < 1) return 0;
+        string s = to_string(x);
+        int n = s.size();
+        vector<int> digits(n);
+        for (int i = 0; i < n; i++) {
+            digits[i] = s[i] - '0';
+        }
+        unordered_map<string, long long> memo;
+        return dp(0, true, false, false, 0, 1, digits, n, memo);
+    }
+    
+    long long dp(int pos, bool tight, bool started, bool hasZero, int sum, int prod, const vector<int>& digits, int n, unordered_map<string, long long>& memo) {
+        if (pos == n) {
+            if (!started) return 0;
+            if (hasZero) return 1;
+            return (prod % sum == 0) ? 1 : 0;
+        }
         
+        string key = to_string(pos) + "_" + (tight ? "1" : "0") + "_" + (started ? "1" : "0") + "_" + (hasZero ? "1" : "0") + "_" + to_string(sum) + "_" + to_string(prod);
+        if (memo.find(key) != memo.end()) {
+            return memo[key];
+        }
         
-        string sl = to_string(l-1);
-        string sr = to_string(r);
+        long long ans = 0;
+        int limit = tight ? digits[pos] : 9;
         
-        unordered_map<string, ll> dp;
-        ll a1 = find(0, 0, 0, sl, 1, 0, dp); // count till l-1
+        if (started && hasZero && !tight) {
+            long long ways = 1;
+            for (int i = pos; i < n; i++) {
+                ways *= 10;
+            }
+            memo[key] = ways;
+            return ways;
+        }
         
-        dp.clear();
+        for (int d = 0; d <= limit; d++) {
+            bool newTight = tight && (d == limit);
+            if (!started) {
+                if (d == 0) {
+                    ans += dp(pos + 1, newTight, false, false, 0, 1, digits, n, memo);
+                } else {
+                    ans += dp(pos + 1, newTight, true, false, d, d, digits, n, memo);
+                }
+            } else {
+                if (hasZero) {
+                    ans += dp(pos + 1, newTight, true, true, sum + d, 0, digits, n, memo);
+                } else {
+                    if (d == 0) {
+                        ans += dp(pos + 1, newTight, true, true, sum, 0, digits, n, memo);
+                    } else {
+                        ans += dp(pos + 1, newTight, true, false, sum + d, prod * d, digits, n, memo);
+                    }
+                }
+            }
+        }
         
-        ll a2 = find(0, 0, 0, sr, 1, 0, dp); // count till r
-                
-        return a2 - a1;
-        
+        memo[key] = ans;
+        return ans;
     }
 };
