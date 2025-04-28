@@ -1,22 +1,23 @@
 class Solution {
 public:
-    int count = 0;
-    int countCoveredBuildings(int n, vector<vector<int>>& grid) {
-        for (int i = 0 ; i < grid.size() ; i++) 
-            if (isBuilding(grid, grid[i][0], grid[i][1])) ++count;
-        
-        return count;
-    }
-    
-    bool isBuilding(vector<vector<int>>& grid, int x, int y) {
-        bool up = 0, down = 0, left = 0, right = 0;
-        for (int i = 0; i < grid.size(); i++) {
-            if (grid[i][0] == x && grid[i][1] == y) continue;
-            if (grid[i][0] == x && grid[i][1] < y) up = true;
-            if (grid[i][0] == x && grid[i][1] > y) down = true;
-            if (grid[i][1] == y && grid[i][0] < x) left = true;
-            if (grid[i][1] == y && grid[i][0] > x) right = true;
+    int countCoveredBuildings(int n, vector<vector<int>>& grid, int count = 0) {
+        unordered_map<int,set<int>> st1, st2;
+        for (auto& p : grid) {
+            st1[p[0]].insert(p[1]);
+            st2[p[1]].insert(p[0]);
         }
-        return up && down && left && right;
+        
+        for (auto& p : grid) {
+            auto& it1 = st1[p[0]];
+            auto& it2 = st2[p[1]];
+            auto[downy, uph] = it1.equal_range(p[1]);
+            auto[downx, upx] = it2.equal_range(p[0]);
+            bool up = downy != it1.begin();
+            bool down = uph != it1.end();
+            bool left = downx != it2.begin();
+            bool right = upx != it2.end();
+            if (up && down && left && right) ++count;
+        }
+        return count;
     }
 };
