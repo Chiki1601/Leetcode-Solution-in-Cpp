@@ -1,56 +1,41 @@
 class Solution {
 public:
-    vector<string> res;
-    
-    void dfs(int i, int level, vector<vector<int>> &adj, vector<int> &vis, vector<string> &curr, vector<string>& words){
-    
-        if(vis[i] >= level){
-            return;
-        }
-        
-        vis[i] = level;
-        
-        curr.push_back(words[i]);
-
-        
-        
-        if(adj[i].size() == 0 && res.size() < curr.size()){
-            res = curr;
-        }
-        
-        for(int k : adj[i]){
-            dfs(k, level + 1, adj, vis, curr, words);
-        }
-        
-        curr.pop_back(); 
+    bool differByOneChar(string word1, string word2) {
+        if (word1.length() != word2.length()) return false;
+        int diffCount = 0;
+        for (int i = 0; i < word1.length(); i++) 
+            diffCount += word1[i] != word2[i];
+        return diffCount == 1;
     }
-    vector<string> getWordsInLongestSubsequence(int n, vector<string>& words, vector<int>& groups) {
+    
+    vector<string> getWordsInLongestSubsequence(vector<string>& words, vector<int>& groups) {
+        int n = groups.size();
+        vector<int> dp(n, 1), parent(n, -1);
+        int maxi = 0;
         
-        vector<vector<int>> adj(n);
-        
-        for(int i = 0 ; i < n ; i++){
-            for(int j = i + 1 ; j < n ; j++){
-                if(words[i].size() == words[j].size() && groups[i] != groups[j]){
-                    int c = 0;
-                    for(int k = 0 ; k < words[j].size() ; k++){
-                        if(words[i][k] != words[j][k])
-                            c++;
-                    }
-                    if(c == 1)
-                        adj[i].push_back(j);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                if (groups[i] != groups[j] && 
+                        differByOneChar(words[i], words[j]) && 
+                            dp[i] < dp[j] + 1) {
+                    dp[i] = dp[j] + 1;
+                    parent[i] = j;
                 }
             }
+            maxi = max(maxi, dp[i]);
         }
         
-        vector<int> vis(n, -1);
-        
-        for(int i = 0 ; i < n ; i++){
-            if(vis[i] == -1){
-                vector<string> curr;
-                dfs(i, 0, adj, vis, curr, words);
+        vector<string> result;
+        for (int i = 0; i < n; i++) {
+            if (maxi == dp[i]) {
+                while (i != -1) {
+                    result.push_back(words[i]);
+                    i = parent[i];
+                }
+                break;
             }
         }
-        
-        return res;
+        reverse(result.begin(), result.end());
+        return result;
     }
 };
