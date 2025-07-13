@@ -1,29 +1,55 @@
-int res = 0;
-bool dp[16384] = {};
-void dfs(int i, int j, vector<unordered_set<int>>& al, const string& l, uint mask, vector<bool> &visited) {
-    mask |= (1 << i) | (1 << j);
-    if (exchange(dp[mask], true))
-        return;
-    visited[i] = visited[j] = true;
-    res = max(res, popcount(mask));
-    for (int x : al[i])
-        if (!visited[x])
-            for (int y : al[j])
-                if (!visited[y] && x != y && l[x] == l[y])
-                    dfs(x, y, al, l, mask, visited);
-    visited[i] = visited[j] = false;
-}
-int maxLen(int n, vector<vector<int>>& edges, string label) {
-    vector<unordered_set<int>> al(n);
-    for (const auto& e : edges) {
-        al[e[0]].insert(e[1]);
-        al[e[1]].insert(e[0]);
+class Solution {
+public:
+    bool dp[1 << 15][15][15];
+
+    int maxLen(int n, vector<vector<int>>& edg, string lab) {
+
+        vector<vector<int>> adj(n);
+        for (auto it : edg) {
+            adj[it[0]].push_back(it[1]);
+            adj[it[1]].push_back(it[0]);
+        }
+
+        int fmask = (1 << n) - 1;
+        int ans = 1;
+
+        for (int mask = 1; mask <= fmask; mask++) {
+
+            if (__builtin_popcount(mask) == 1) {
+                for (int i = 0; i < n; i++) {
+                    if (mask & (1 << i)) {
+                        dp[mask][i][i] = true;
+                        for (int u : adj[i]) {
+                            if (lab[u] == lab[i]) {
+                                int nmask = mask | (1 << u);
+                                dp[nmask][i][u] = true;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (!dp[mask][i][j])
+                        continue;
+                    ans = max(ans, __builtin_popcount(mask));
+
+                    for (int u : adj[i]) {
+                        for (int v : adj[j]) {
+                            if (lab[u] == lab[v] && u != v) {
+                                if (((mask >> u) & 1) || ((mask >> v) & 1))
+                                    continue;
+                                int nmask = mask | (1 << u) | (1 << v);
+                                dp[nmask][u][v] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return ans;
     }
-    for (int i = 0; i < n; ++i) {
-        dfs(i, i, al, label, 0, vector<bool>(n) = {});
-        for (int j : al[i])
-            if (i < j && label[i] == label[j])
-                dfs(i, j, al, label, 0, vector<bool>(n) = {});
-    }
-    return res;
-}
+};
