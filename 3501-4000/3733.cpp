@@ -1,36 +1,31 @@
-#include <bits/stdc++.h>
-using namespace std;
-
 class Solution {
 public:
-    long long gcd(long long a, long long b) {
-        return b == 0 ? a : gcd(b, a % b);
-    }
-
-    bool finish(long long t, vector<int>& d, vector<int>& r) {
-        long long a = t - t / r[0];
-        long long b = t - t / r[1];
-        long long lcm = (1LL * r[0] * r[1]) / gcd(r[0], r[1]);
-        long long total = t - t / lcm;
-        return a >= d[0] && b >= d[1] && (long long)(d[0] + d[1]) <= total;
-    }
-
+    using ll = long long;
+    using i128 = __int128_t;
     long long minimumTime(vector<int>& d, vector<int>& r) {
-        long long l = 0, h = 1e18;
-        while (l < h) {
-            long long mid = (l + h) / 2;
-            if (finish(mid, d, r))
-                h = mid;
-            else
-                l = mid + 1;
+
+        ll low = 0, high = LLONG_MAX;
+        ll temp = (i128)(d[0] + d[1]) * (i128)max(r[0], r[1]);
+        high = max(100LL, min(high, temp));
+        ll time = 0;
+
+        while (low <= high) {
+
+            ll mid = low + (high - low) / 2;
+            ll x1 = mid - mid / r[0]; // drone 1 vacancies
+            ll x2 = mid - mid / r[1]; // drone 2 vacancies
+            ll gcdd = gcd(r[0], r[1]);
+            i128 x = (i128)(r[0]/gcdd) * (i128)r[1];
+            // overlapping time
+            ll x3 = mid - (mid / r[0] + mid/r[1] - mid/x);
+
+            if (x1 >= d[0] and x2 >= d[1] and x1 + x2 - x3 >= d[0] + d[1]) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
         }
-        return l;
+        return low;
     }
 };
-
-int main() {
-    Solution sol;
-    vector<int> d = {3, 2};
-    vector<int> r = {2, 3};
-    cout << sol.minimumTime(d, r) << endl;
-}
