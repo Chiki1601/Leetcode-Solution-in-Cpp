@@ -1,6 +1,5 @@
 class Solution {
 public:
-
     struct RemTree {
         int n;
         vector<int> lo, hi;
