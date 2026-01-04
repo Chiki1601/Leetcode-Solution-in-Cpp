@@ -1,25 +1,26 @@
 class Solution {
 public:
-    int findMaxVal(int n, vector<vector<int>>& restrictions,
-                   vector<int>& diff) {
-        vector<int> restriction(n, 1e9);
-
-        for (auto& r : restrictions) {
-            restriction[r[0]] = r[1];
+    int findMaxVal(int n, vector<vector<int>>& res, vector<int>& diff) {
+        vector<int> ans(n, INT_MAX);
+        // 0 index with 0 value
+        ans[0] = 0;
+        for (auto &r : res) {
+            int idx = r[0];
+            int val = r[1];
+            ans[idx] = min(ans[idx],val);
         }
-
-        for (int i = n - 2; i >= 0; i--) {
-            restriction[i] = min(restriction[i], restriction[i + 1] + diff[i]);
+        //Forward Pass
+        for(int i=1;i<n;i++){
+            int diff_forward=ans[i-1]+diff[i-1];
+            ans[i]=min(ans[i],diff_forward);
         }
-
-        restriction[0] = 0;
-
-        int ans = 0;
-        for (int i = 1; i < n; i++) {
-            restriction[i] = min(restriction[i], restriction[i - 1] + diff[i - 1]);
-            ans = max(ans, restriction[i]);
+        //Backward Pass
+        for(int i=n-2;i>=0;i--){
+            int diff_backward=ans[i+1]+diff[i];
+            ans[i]=min(ans[i],diff_backward);
         }
-
-        return ans;
+        //max element
+        int result = *max_element(ans.begin(), ans.end());
+        return result;
     }
-}
+};
