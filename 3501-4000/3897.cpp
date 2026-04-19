@@ -1,45 +1,59 @@
 class Solution {
 public:
-    int MOD = 1e9 + 7;
-    int MAX = 20006;
-    vector<long long> pow;
+    const int mod = 1e9 + 7;
 
-    void precompute(){
-        pow[0] = 1;
-        for(int i=1;i<MAX;i++){
-            pow[i] = (pow[i-1]*2)%MOD;
-        }
+    long long find(long long base,long long exp){
+    long long res = 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (__int128)res * base % mod;
+        base = (__int128)base * base % mod;
+        exp /= 2;
+    }
+    return res % mod;
     }
     int maxValue(vector<int>& nums1, vector<int>& nums0) {
-        pow.resize(MAX);
-        int n = nums1.size();
-        precompute();
-        vector<pair<int, int>> v;
-        for (int i = 0; i < n; i++) {
-            v.push_back({nums1[i], nums0[i]});
+        vector<pair<int,int>> a;
+        long long n = nums1.size(),ans = 0;
+        int last = 0;
+        for(int i = 0; i<n; i++){
+            if(nums0[i] == 0){
+               last += nums1[i];
+            } else{
+                a.push_back({nums1[i],nums0[i]});
+            }
         }
-        sort(v.begin(), v.end(), [&](pair<int, int> & p1, pair<int, int> & p2){
-            int a1 = p1.first;
-            int a2 = p1.second;
-            int a3 = p2.first;
-            int a4 = p2.second;
-            string s1(a1,'1');
-            string s2(a3,'1');
-            string s3(a2,'0');
-            string s4(a4,'0');
-
-            s1 += s3;
-            s2 += s4;
-
-            return s1 + s2 > s2 + s1;
+        sort(a.begin(),a.end(),[](auto &a1, auto&a2){
+            if(a1.first == a2.first) return a1.second < a2.second;
+            return a1.first > a2.first;
         });
-        int ans = 0;
-        for(auto& p : v){
-            int a = p.first;
-            int b = p.second;
-            int sum = a + b;
-            ans = ((1LL*ans*pow[sum])%MOD + (((pow[a]-1 + MOD)%MOD)*pow[b])%MOD)%MOD;
+
+
+        long long exp = 0;
+
+
+        for(int i = a.size()-1; i>=0; i--){
+            auto [one,zero] = a[i];
+            exp += zero;
+            long long first = find(2,exp);
+
+            long long rn  = find(2,one);
+
+            long long val = (first * (rn - 1 + mod) % mod) % mod;
+             ans = (ans + val) % mod;
+
+            exp += one;
         }
+
+            long long first = find(2,exp);
+
+            long long rn  = find(2,last);
+
+            long long val = (first * (rn - 1 + mod) % mod) % mod;
+             ans = (ans + val) % mod;
+
+        // cout<<ans<<endl;
+
         return ans;
+        
     }
 };
