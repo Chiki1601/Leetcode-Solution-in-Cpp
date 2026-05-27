@@ -1,106 +1,89 @@
 class Solution {
 public:
-    vector<int> numberOfPairs(vector<int>& nums1, vector<int>& nums2, vector<vector<int>>& queries) {
+    using ll = long long;
 
-        int n=nums2.size();
-        int block=sqrt(n);
-        int sz=block;
-        vector<long long> nums(n);
-        
-        
-        if(block*block<n)
-            sz+=2;
-       
-        vector<unordered_map<long long,int>> help(sz);
-        vector<long long> help2(sz,0);
+    vector<int> numberOfPairs(vector<int>& nums1,
+                              vector<int>& nums2,
+                              vector<vector<int>>& queries) {
 
-        for(int i=0;i<n;i++)
-            {
-                help[i/block][nums2[i]]++;
-                nums[i]=nums2[i];
-            }
+        int n = nums2.size();
 
-        auto update=[&](int i,int j,long long val)
-        {
-            if(j-i+1<=2*block)
-            {
-                while(i <=j )
-                {
-                    help[i/block][nums[i]]--;
-                    help[i/block][nums[i]+val]++;
-                    nums[i]=nums[i]+val;
-                    i++;
-                }
-                return ;
-                
-            }
-            while(i%block !=0 )
-                {
-                    help[i/block][nums[i]]--;
-                    help[i/block][nums[i]+val]++;
-                    nums[i]=nums[i]+val;
-                    i++;
-                }
-            while(j%block != block-1)
-                {
-                    help[j/block][nums[j]]--;
-                    help[j/block][nums[j]+val]++;
-                    nums[j]=nums[j]+val;
-                    j--;
-                }
-            while((i/block)<=(j/block))
-                {
-                    help2[i/block]+=val;
-                    i+=block;
-                }
-            return ;
-        };
+        int blockSize = sqrt(n) + 1;
+        int blocks = (n + blockSize - 1) / blockSize;
 
-        auto queryAns=[&](int val){
-            int ans=0;
-            int i=0;
-            while(i<sz)
-                {
-                    ans+=help[i][val-help2[i]];
-                    i++;
-                }
-            return ans;
-            
-        };
-        vector<int> ans;
+        vector<ll> a(n);
+        for(int i = 0; i < n; i++) a[i] = nums2[i];
 
-        for(auto &query:queries)
-            {
-                if(query[0]==1)
-                {
-                    int i=query[1],j=query[2],val=query[3];
+        vector<unordered_map<ll,ll>> freq(blocks);
+        vector<ll> lazy(blocks, 0);
 
-                    if(n>100)
-                    update(i,j,val);
-                    else{
-                        while(i <=j )
-                            {
-                                help[i/block][nums[i]]--;
-                                help[i/block][nums[i]+val]++;
-                                nums[i]=nums[i]+val;
-                                i++;
-                            }
-                        
+        for(int i = 0; i < n; i++) {
+            freq[i / blockSize][a[i]]++;
+        }
+
+        vector<int> res;
+
+        for(auto &q : queries) {
+
+            // update query
+            if(q[0] == 1) {
+
+                int l = q[1];
+                int r = q[2];
+                ll val = q[3];
+
+                for(int i = l; i <= r;) {
+
+                    // full block
+                    if(i % blockSize == 0 &&
+                       i + blockSize - 1 <= r) {
+
+                        lazy[i / blockSize] += val;
+                        i += blockSize;
+                    }
+                    else {
+
+                        int b = i / blockSize;
+
+                        ll oldVal = a[i];
+
+                        freq[b][oldVal]--;
+
+                        if(freq[b][oldVal] == 0)
+                            freq[b].erase(oldVal);
+
+                        a[i] += val;
+
+                        freq[b][a[i]]++;
+
+                        i++;
                     }
                 }
-                else{
-                    int anscur=0;
-                    for(auto num:nums1)
-                        {
-                            anscur+=queryAns(query[1]-num);
-                            
-                        }
-                    ans.push_back(anscur);
-                    
-                }
-                
             }
-        return ans;
-        
+
+            // count query
+            else {
+
+                ll total = q[1];
+                ll ans = 0;
+
+                for(int x : nums1) {
+
+                    ll need = total - x;
+
+                    for(int b = 0; b < blocks; b++) {
+
+                        auto it = freq[b].find(need - lazy[b]);
+
+                        if(it != freq[b].end())
+                            ans += it->second;
+                    }
+                }
+
+                res.push_back((int)ans);
+            }
+        }
+
+        return res;
     }
 };
